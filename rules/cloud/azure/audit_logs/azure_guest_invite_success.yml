@@ -1,0 +1,39 @@
+title: Guest User Invited Successfully
+id: 0da02318-e07c-420f-81fa-18a26a17f01b
+status: experimental
+description: |
+    Detects when an external user is successfully invited to the tenant as a guest
+    (Entra ID B2B collaboration, "Invite external user" in the audit log). A successful
+    invite creates a guest account the invited identity can redeem, so it is a quiet
+    persistence move: an attacker holding a compromised account invites an external
+    identity they control and keeps a way back into the tenant long after the initial
+    compromise, without needing the victim's credentials again. Microsoft lists this
+    activity under the Invited users service in its audit-log reference and its security
+    operations guidance asks to alert on invitations sent by inviters that are not
+    approved. This rule keys on the success outcome only — failed invitations are
+    covered by the sibling rule azure_guest_invite_failure.yml, and invitations by
+    non-approved inviters are covered by the rules-placeholder rule
+    azure_ad_guest_users_invited_to_tenant_by_non_approved_inviters.yml.
+references:
+    - https://learn.microsoft.com/en-us/entra/identity/monitoring-health/reference-audit-activities
+    - https://learn.microsoft.com/en-us/entra/architecture/security-operations-user-accounts
+    - https://attack.mitre.org/techniques/T1078/004/
+author: Haroon Arshad
+date: 2026-11-28
+tags:
+    - attack.privilege-escalation
+    - attack.initial-access
+    - attack.persistence
+    - attack.stealth
+    - attack.t1078.004
+logsource:
+    product: azure
+    service: auditlogs
+detection:
+    selection:
+        properties.message: 'Invite external user'
+        Status: success
+    condition: selection
+falsepositives:
+    - Legitimate B2B onboarding — partners, vendors and contractors are routinely invited as guests. Baseline which inviters send invitations in the tenant and treat invites from approved inviters as expected.
+level: low
